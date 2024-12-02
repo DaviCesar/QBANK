@@ -43,12 +43,14 @@ Antes de rodar o projeto, você precisa ter o seguinte instalado:
 1. Clone o repositório para sua máquina local:
 
    ```bash
-   git clone https://github.com/usuario/projeto-bancario.git
+   git clone https://github.com/DaviCesar/QBANK.git
+   
 Navegue até o diretório do projeto:
 
-bash
-Copiar código
+bash Copiar código
+
 cd projeto-bancario
+
 Compile o projeto:
 
 Caso esteja usando Maven, execute o comando:

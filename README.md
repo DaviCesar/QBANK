@@ -91,3 +91,10 @@ Licença
 Este projeto está licenciado sob a MIT License.
 
 Esse README inclui informações sobre as funcionalidades do projeto, como rodá-lo e como contribuir. Você pode personalizar conforme os detalhes específicos do seu projeto bancário em Java.
+
+Nome dos participantes:
+
+- Davi Cesar Martins e Silva
+- Victor Rodrigues da Silva
+- Nicolas Ribeiro Rocha
+- Ryan Victor Vieira Quintiliano Martins

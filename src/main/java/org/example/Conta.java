@@ -1,6 +1,6 @@
 package org.example;
 
-public class ContaBancaria {
+public class Conta {
     private String numeroConta;
     private String nomeCliente;
     private String endereco;
@@ -8,7 +8,7 @@ public class ContaBancaria {
     private double saldo;
 
     // Construtor
-    public ContaBancaria(String numeroConta, String nomeCliente, String endereco, String telefone, double saldo) {
+    public Conta(String numeroConta, String nomeCliente, String endereco, String telefone, double saldo) {
         this.numeroConta = numeroConta;
         this.nomeCliente = nomeCliente;
         this.endereco = endereco;
@@ -57,12 +57,26 @@ public class ContaBancaria {
         this.saldo = saldo;
     }
 
+    // Métodos de débito e crédito
+    public void debitar(double valor) {
+        if (valor > saldo) {
+            throw new IllegalArgumentException("Saldo insuficiente.");
+        }
+        saldo -= valor;
+    }
+
+    public void creditar(double valor) {
+        saldo += valor;
+    }
+
     @Override
     public String toString() {
-        return "Conta: " + numeroConta + "\n" +
-                "Cliente: " + nomeCliente + "\n" +
-                "Endereço: " + endereco + "\n" +
-                "Telefone: " + telefone + "\n" +
-                "Saldo: " + saldo;
+        return "Conta{" +
+                "numeroConta='" + numeroConta + '\'' +
+                ", nomeCliente='" + nomeCliente + '\'' +
+                ", endereco='" + endereco + '\'' +
+                ", telefone='" + telefone + '\'' +
+                ", saldo=" + saldo +
+                '}';
     }
 }

@@ -1,20 +1,21 @@
 package org.example;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SistemaBancario {
+    private Map<String, Conta> contas = new HashMap<>();
+    private Map<String, Emprestimo> emprestimos = new HashMap<>();
 
-    private List<ContaBancaria> contas;
-
-    public SistemaBancario() {
-        contas = new ArrayList<>();
-    }
-
-    // Criar nova conta
-    public void criarConta(String numeroConta, String nomeCliente, String endereco, String telefone, double saldo) {
-        ContaBancaria novaConta = new ContaBancaria(numeroConta, nomeCliente, endereco, telefone, saldo);
-        contas.add(novaConta);
+    // Criar uma nova conta
+    public void criarConta(String numeroConta, String nomeCliente, String endereco, String telefone,
+            double saldoInicial) {
+        if (contas.containsKey(numeroConta)) {
+            System.out.println("Conta já existe.");
+            return;
+        }
+        Conta novaConta = new Conta(numeroConta, nomeCliente, endereco, telefone, saldoInicial);
+        contas.put(numeroConta, novaConta);
         System.out.println("Conta criada com sucesso!");
     }
 
@@ -23,51 +24,136 @@ public class SistemaBancario {
         if (contas.isEmpty()) {
             System.out.println("Nenhuma conta cadastrada.");
         } else {
-            for (ContaBancaria conta : contas) {
-                System.out.println(conta);
-                System.out.println("--------------------------");
-            }
+            contas.values().forEach(System.out::println);
         }
     }
 
-    // Atualizar dados da conta
+    // Atualizar dados de uma conta
     public void atualizarConta(String numeroConta, String novoEndereco, String novoTelefone) {
-        for (ContaBancaria conta : contas) {
-            if (conta.getNumeroConta().equals(numeroConta)) {
-                conta.setEndereco(novoEndereco);
-                conta.setTelefone(novoTelefone);
-                System.out.println("Dados da conta atualizados com sucesso!");
-                return;
-            }
+        Conta conta = contas.get(numeroConta);
+        if (conta == null) {
+            System.out.println("Conta não encontrada.");
+            return;
         }
-        System.out.println("Conta não encontrada.");
+        conta.setEndereco(novoEndereco);
+        conta.setTelefone(novoTelefone);
+        System.out.println("Dados atualizados com sucesso!");
     }
 
-    // Excluir conta
+    // Excluir uma conta
     public void excluirConta(String numeroConta) {
-        ContaBancaria contaToRemove = null;
-        for (ContaBancaria conta : contas) {
-            if (conta.getNumeroConta().equals(numeroConta)) {
-                contaToRemove = conta;
-                break;
-            }
-        }
-
-        if (contaToRemove != null) {
-            contas.remove(contaToRemove);
+        if (contas.remove(numeroConta) != null) {
             System.out.println("Conta excluída com sucesso!");
         } else {
             System.out.println("Conta não encontrada.");
         }
     }
 
-    // Buscar conta por número
-    public ContaBancaria buscarConta(String numeroConta) {
-        for (ContaBancaria conta : contas) {
-            if (conta.getNumeroConta().equals(numeroConta)) {
-                return conta;
-            }
+    // Transferências entre contas próprias
+    public void transferirEntreContasProprias(String contaOrigem, String contaDestino, double valor) {
+        Conta origem = contas.get(contaOrigem);
+        Conta destino = contas.get(contaDestino);
+
+        if (origem == null || destino == null) {
+            System.out.println("Conta de origem ou destino não encontrada.");
+            return;
         }
-        return null;
+
+        try {
+            origem.debitar(valor);
+            destino.creditar(valor);
+            System.out.println("Transferência realizada com sucesso!");
+        } catch (IllegalArgumentException e) {
+            System.out.println("Erro na transferência: " + e.getMessage());
+        }
+    }
+
+    // Transferências para terceiros
+    public void transferirParaTerceiros(String contaOrigem, String contaDestino, double valor) {
+        transferirEntreContasProprias(contaOrigem, contaDestino, valor);
+    }
+
+    // Transferências para outro banco
+    public void transferirParaOutroBanco(String contaOrigem, String bancoDestino, String contaDestinoOutroBanco,
+            double valor) {
+        Conta origem = contas.get(contaOrigem);
+
+        if (origem == null) {
+            System.out.println("Conta de origem não encontrada.");
+            return;
+        }
+
+        try {
+            origem.debitar(valor);
+            System.out.println("Transferência para o banco " + bancoDestino + " realizada com sucesso!");
+        } catch (IllegalArgumentException e) {
+            System.out.println("Erro na transferência: " + e.getMessage());
+        }
+    }
+
+    // Solicitar um empréstimo
+    public void solicitarEmprestimo(String numeroConta, double valorEmprestimo, int parcelas, double taxaJuros) {
+        Conta conta = contas.get(numeroConta);
+        if (conta == null) {
+            System.out.println("Conta não encontrada.");
+            return;
+        }
+
+        // Calcular o valor mensal e o total do empréstimo
+        double taxaMensal = taxaJuros / 12 / 100;
+        double valorParcela = (valorEmprestimo * taxaMensal) / (1 - Math.pow(1 + taxaMensal, -parcelas));
+        double valorTotal = valorParcela * parcelas;
+
+        // Registrar o empréstimo
+        Emprestimo emprestimo = new Emprestimo(numeroConta, valorEmprestimo, parcelas, taxaJuros, valorParcela,
+                valorTotal);
+        emprestimos.put(numeroConta, emprestimo);
+
+        // Adicionar o valor do empréstimo ao saldo da conta
+        conta.creditar(valorEmprestimo);
+
+        System.out.println("Empréstimo aprovado!");
+        System.out.println("Valor do Empréstimo: R$" + String.format("%.2f", valorEmprestimo));
+        System.out.println("Número de Parcelas: " + parcelas);
+        System.out.println("Valor da Parcela: R$" + String.format("%.2f", valorParcela));
+        System.out.println("Valor Total a Pagar: R$" + String.format("%.2f", valorTotal));
+    }
+
+    // Pagar uma parcela de empréstimo
+    public void pagarParcelaEmprestimo(String numeroConta, int numeroParcela, double valorParcela) {
+        Emprestimo emprestimo = emprestimos.get(numeroConta);
+        if (emprestimo == null) {
+            System.out.println("Nenhum empréstimo encontrado para esta conta.");
+            return;
+        }
+
+        if (numeroParcela > emprestimo.getParcelasPagas() + 1) {
+            System.out.println("Parcela inválida. Pagamento fora de ordem.");
+            return;
+        }
+
+        Conta conta = contas.get(numeroConta);
+        if (conta == null) {
+            System.out.println("Conta não encontrada.");
+            return;
+        }
+
+        try {
+            conta.debitar(valorParcela);
+            emprestimo.pagarParcela();
+            System.out.println("Parcela paga com sucesso!");
+        } catch (IllegalArgumentException e) {
+            System.out.println("Erro no pagamento: " + e.getMessage());
+        }
+    }
+
+    // Visualizar detalhes de um empréstimo
+    public void visualizarEmprestimo(String numeroConta) {
+        Emprestimo emprestimo = emprestimos.get(numeroConta);
+        if (emprestimo == null) {
+            System.out.println("Nenhum empréstimo encontrado para esta conta.");
+        } else {
+            System.out.println(emprestimo);
+        }
     }
 }
